@@ -1,0 +1,16 @@
+The running instrustions are in the readMe so please refer to that. 
+LightHouse score: 
+  The overall score was a 96
+  Preformance 96
+  Accessibility 95
+  Best Practice 100
+  SEO 90 
+  the picture is in the gitHub 
+
+I did use AI for this project as it was suggested. I used 
+   Codex- For the API key fixes and adding the selection box for the skills 
+   Gemini- For gerneal fixes and improvements to the code used to to help with improvements on the html added the progress bar with it 
+   Claude - Started here used it for the js and to assist with the backend evem thought it broke it and codex had to fix it thanks claude 
+Please not I have comments in the code that explains what the AI did I gave it very strict paramartes when I was having it add stuff so a lot of it is similar to what we did in class
+
+I am also fine with you shareing this project with others my logo is the otter Dev image. 
