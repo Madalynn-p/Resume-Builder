@@ -10,23 +10,43 @@
 
 
     <style>
-        .panel { display: none; }
-        .panel.active { display: block; }
-        #preview-wrap { display: none; }
-        @media print {
-            .no-print { display: none !important; }
-            #resume-out { box-shadow: none !important; border: none !important; }
+        /* Had gemini add this as well this is CSS that controls how parts of the resume builder look and behave. */
+        /* It may have a theme but I wanted it to look an feel neat  */
+        /* Hide every step panel by default */
+    .panel { display: none; }
+
+    /* Show only the panel that has the active class */
+    .panel.active { display: block; }
+
+    /* Hide the resume preview section until the app turns it on */
+    #preview-wrap { display: none; }
+
+    /* These styles only apply when the page is being printed */
+    @media print {
+        /* Hide anything marked no-print, like buttons or controls */
+        .no-print { display: none !important; }
+
+        /* Remove the preview box styling so the printed resume looks clean */
+        #resume-out {
+            box-shadow: none !important;
+            border: none !important;
         }
-        #resume-out h5 {
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            border-bottom: 1px solid currentColor;
-            padding-bottom: 4px;
-        }
+    }
+
+    /* Style the section headings inside the resume preview */
+    #resume-out h5 {
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        border-bottom: 1px solid currentColor;
+        padding-bottom: 4px;
+    }
     </style>
 </head>
 <body class="bg-light">
+    
 
+<!-- So I got most of it built then had gemini add the save and step to go foward and back along with the progress bar -->
+<!-- Added aria-label because I thought it would help withthe lighhouse score so that is why they are in here -->
 <!-- NAV -->
 <nav class="navbar navbar-dark bg-primary shadow-sm mb-4 no-print">
     <div class="container">
@@ -60,7 +80,7 @@
             <div id="main-workspace" class="no-print">
                 <form id="resumeForm" class="needs-validation" novalidate>
 
-                    <!-- PANEL 0 – Contact -->
+                    <!-- PANEL 0 – Contact  -->
                     <div class="panel active card shadow-sm p-4" id="panel-0">
                         <h2 class="h5 mb-2">1. Contact Details</h2>
 
@@ -101,6 +121,7 @@
                                 <div class="invalid-feedback">Please enter your state.</div>
                             </div>
                         </div>
+                        <!--This is the validate abd step it has to make sure it is correct before it saves and goes on -->
                         <button type="button" class="btn btn-primary float-end" onclick="validateAndGo(saveProfile, 1)"> Save &amp; Next → </button>
                     </div>
 
@@ -141,6 +162,7 @@
                         <div id="jobs-list" class="mb-3" aria-live="polite"></div>
 
                         <div class="d-flex justify-content-between">
+                            <!--This allows the user to step though the application-->
                             <button type="button" class="btn btn-secondary" onclick="goToStep(0)">← Back</button>
                             <button type="button" class="btn btn-primary"   onclick="goToStep(2)">Next →</button>
                         </div>
@@ -255,7 +277,7 @@
             <div id="preview-wrap">
                 <div class="d-flex gap-2 mb-3 no-print flex-wrap">
                     <button class="btn btn-outline-secondary" onclick="exitPreview()">← Back to Editor</button>
-                    <button class="btn btn-primary" onclick="window.print()">🖨 Print / Save as PDF</button>
+                    <button class="btn btn-primary" onclick="window.print()"> Print / Save as PDF</button>
                 </div>
                 <div class="card shadow p-4 p-md-5 bg-white" id="resume-out" aria-label="Resume preview"></div>
             </div>
@@ -269,34 +291,45 @@
 <script src="bootstrap.bundle.min.js"></script>
 <script src="sweetalert2@11.min.js"></script>
 <!-- This script is brought to you by Claude, Gemini, and Codex
- I was not about to type this all out I gave it the html ab=nd backend and took it to go ham 
+ I was not about to type this all out I gave it the html and backend and took it to go ham 
  but I have look though it an explained why it did that and what it does so this is super long appologies -->
 <script>
-    // decide to do the /api thing 
+    // Decide to do the /api thing for all the routes to keep it consistent 
     const API = "/api";
 
+    // Gets the value from an input and removes extra spaces
     const val = (id) => document.getElementById(id).value.trim();
+
+    // Sets the value of an input
     const set = (id, v) => document.getElementById(id).value = v;
 
+    // Escapes special HTML characters so user text is safe to display
     const esc = (s) =>
         String(s || '')
             .replace(/&/g,'&amp;').replace(/</g,'&lt;')
             .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
+    // Sends requests to the backend API
     async function api(path, method = 'GET', body = null) {
         const opts = { method, headers: { 'Content-Type': 'application/json' } };
+
+        // If data is provided, convert it to JSON before sending
         if (body) opts.body = JSON.stringify(body);
 
+        // Make the fetch request to the backend
         const r = await fetch(`${API}${path}`, opts);
 
+        // If the backend returns an error, show the error message
         if (!r.ok) {
             const err = await r.json().catch(() => ({ error: r.statusText }));
             throw new Error(err.error || `HTTP ${r.status}`);
         }
 
+        // Return the backend response as JSON
         return r.json();
     }
 
+    // Shows a small popup message in the top right corner
     const toast = (icon, title) => Swal.fire({
         toast: true,
         position: 'top-end',
@@ -307,9 +340,11 @@
         title
     });
 
+    // Shows an error popup message
     const alertErr = (msg) =>
         Swal.fire({ icon: 'error', title: 'Oops!', text: msg });
 
+    // Shows a delete confirmation popup and returns true if confirmed
     const confirmDel = (title, text) =>
         Swal.fire({
             icon: 'warning',
@@ -318,7 +353,8 @@
             showCancelButton: true,
             confirmButtonText: 'Yes, remove it'
         }).then(r => r.isConfirmed);
- //These are the credits it is shown by the sweet alert 
+
+    // Shows the library credits using SweetAlert
     function showCredits() {
         Swal.fire({
             title: 'Library Credits',
@@ -335,10 +371,13 @@
             icon: 'info'
         });
     }
-// This the the setting menue in the top on the page 
+
+    // Opens the settings popup at the top of the page
     function openSettings() {
+        // Gets the saved Gemini API key from the browser
         const saved = localStorage.getItem('geminiApiKey') || '';
-// Sweet aleart to fill in this is where you place your API key 
+
+        // Shows a SweetAlert form where the user can enter an API key
         Swal.fire({
             title: 'Settings',
             html: `
@@ -350,24 +389,30 @@
                 </p>`,
             confirmButtonText: 'Save Key',
             showCancelButton: true,
+
+            // Checks that the user entered a key before saving
             preConfirm: () => {
                 const k = document.getElementById('swal-api-key').value.trim();
                 if (!k) return Swal.showValidationMessage('Please paste a valid API key');
                 return k;
             }
         }).then(result => {
+            // Saves the API key in the browser if the user clicked save
             if (result.isConfirmed) {
                 localStorage.setItem('geminiApiKey', result.value);
                 toast('success', 'API key saved');
             }
         });
     }
-// The go To Step functions allows you to step though the aplication this lets you go back and fowarth between the pages 
+
+    // Moves the user between the resume builder steps
     function goToStep(n) {
+        // Shows only the selected panel
         document.querySelectorAll('.panel').forEach((p, i) =>
             p.classList.toggle('active', i === n)
         );
 
+        // Step labels and progress bar widths
         const steps = [
             { width: 20,  label: 'Step 1 of 5: Contact' },
             { width: 40,  label: 'Step 2 of 5: Work Experience' },
@@ -376,34 +421,44 @@
             { width: 100, label: 'Step 5 of 5: Skills & AI' },
         ];
 
+        // Gets the progress information for the current step
         const { width, label } = steps[n] || steps[0];
         const bar = document.getElementById('progressBar');
 
+        // Updates the progress bar
         bar.style.width = width + '%';
         bar.setAttribute('aria-valuenow', width);
         bar.textContent = label;
 
+        // Scrolls back to the top of the page
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
+    // Validates the form, saves the current step, then moves forward
     async function validateAndGo(fn, next) {
         const form = document.getElementById('resumeForm');
 
+        // If required fields are missing, show validation styling
         if (!form.checkValidity()) {
             form.classList.add('was-validated');
             return;
         }
 
+        // Removes validation styling after the form is valid
         form.classList.remove('was-validated');
 
         try {
+            // Runs the save function for the current step
             await fn();
+
+            // Moves to the next step
             goToStep(next);
         } catch (err) {
             alertErr('Could not save: ' + err.message);
         }
     }
 
+    // Saves the contact profile information
     async function saveProfile() {
         await api('/profile', 'POST', {
             name: val('txtName'),
@@ -417,11 +472,14 @@
         toast('success', 'Contact details saved');
     }
 
+    // Adds a job to the work experience section
     async function addJob() {
+        // Makes sure company and role are filled in
         if (!val('txtCompany') || !val('txtRole')) {
             return toast('warning', 'Company and role are required');
         }
 
+        // Sends the job data to the backend
         await api('/jobs', 'POST', {
             company: val('txtCompany'),
             role: val('txtRole'),
@@ -430,21 +488,27 @@
             details: val('txtDetails'),
         });
 
+        // Clears the job input fields
         ['txtCompany','txtRole','txtStartYear','txtEndYear','txtDetails'].forEach(id => set(id,''));
 
         toast('success', 'Job added');
+
+        // Reloads the job list
         await loadJobs();
     }
 
+    // Loads all saved jobs and displays them on the page
     async function loadJobs() {
         const jobs = await api('/jobs');
         const el = document.getElementById('jobs-list');
 
+        // Shows a message if there are no jobs yet
         if (!jobs.length) {
             el.innerHTML = '<p class="text-muted small">No jobs added yet.</p>';
             return;
         }
 
+        // Builds the HTML for each job
         el.innerHTML = jobs.map(j => `
             <div class="d-flex justify-content-between align-items-start border-bottom py-2">
                 <div>
@@ -464,6 +528,7 @@
             </div>`).join('');
     }
 
+    // Deletes a job after confirming with the user
     async function delJob(id) {
         if (!await confirmDel('Remove this job?', 'This cannot be undone.')) return;
 
@@ -473,11 +538,14 @@
         await loadJobs();
     }
 
+    // Adds an education entry
     async function addEducation() {
+        // Makes sure the school name is filled in
         if (!val('txtSchool')) {
             return toast('warning', 'School name is required');
         }
 
+        // Sends education data to the backend
         await api('/education', 'POST', {
             school: val('txtSchool'),
             degree_type: val('txtDegree'),
@@ -485,21 +553,25 @@
             year: val('txtEduYear'),
         });
 
+        // Clears the education input fields
         ['txtSchool','txtDegree','txtEduField','txtEduYear'].forEach(id => set(id,''));
 
         toast('success', 'Education added');
         await loadEdu();
     }
 
+    // Loads all education entries and displays them
     async function loadEdu() {
         const edus = await api('/education');
         const el = document.getElementById('edu-list');
 
+        // Shows a message if there are no education entries yet
         if (!edus.length) {
             el.innerHTML = '<p class="text-muted small">No education added yet.</p>';
             return;
         }
 
+        // Builds the HTML for each education entry
         el.innerHTML = edus.map(e => `
             <div class="d-flex justify-content-between align-items-start border-bottom py-2">
                 <div>
@@ -513,6 +585,7 @@
             </div>`).join('');
     }
 
+    // Deletes an education entry after confirming with the user
     async function delEdu(id) {
         if (!await confirmDel('Remove this education entry?', 'This cannot be undone.')) return;
 
@@ -522,32 +595,39 @@
         await loadEdu();
     }
 
+    // Adds a project or relevant experience entry
     async function addRelevant() {
+        // Makes sure the title is filled in
         if (!val('txtRelTitle')) {
             return toast('warning', 'Title is required');
         }
 
+        // Sends the relevant experience data to the backend
         await api('/relevant', 'POST', {
             type: val('txtRelType'),
             title: val('txtRelTitle'),
             desc: val('txtRelDesc'),
         });
 
+        // Clears the relevant experience fields
         ['txtRelTitle','txtRelDesc'].forEach(id => set(id,''));
 
         toast('success', 'Experience added');
         await loadRel();
     }
 
+    // Loads relevant experience entries and displays them
     async function loadRel() {
         const items = await api('/relevant');
         const el = document.getElementById('rel-list');
 
+        // Shows a message if there are no entries yet
         if (!items.length) {
             el.innerHTML = '<p class="text-muted small">No entries added yet.</p>';
             return;
         }
 
+        // Builds the HTML for each relevant experience entry
         el.innerHTML = items.map(i => `
             <div class="d-flex justify-content-between align-items-start border-bottom py-2">
                 <div>
@@ -559,6 +639,7 @@
             </div>`).join('');
     }
 
+    // Deletes a relevant experience entry after confirming with the user
     async function delRel(id) {
         if (!await confirmDel('Remove this entry?', 'This cannot be undone.')) return;
 
@@ -568,6 +649,7 @@
         await loadRel();
     }
 
+    // Splits the skills input into a clean list
     function getSkillItems() {
         return val('txtSkillsIO')
             .split(/,|\n/)
@@ -575,19 +657,24 @@
             .filter(skill => skill.length > 0);
     }
 
+    // Displays skills as checkboxes so the user can choose what appears on the resume
     function renderSkillsList(selectedSkills = null) {
         const skills = getSkillItems();
         const el = document.getElementById('skills-list');
 
+        // Stops if the skills list element does not exist
         if (!el) return;
 
+        // Shows a message if no skills have been entered
         if (!skills.length) {
             el.innerHTML = '<p class="text-muted small">Add skills above to choose which ones appear on your resume.</p>';
             return;
         }
 
+        // Uses selected skills if provided, otherwise selects all skills
         const selected = selectedSkills || skills;
 
+        // Builds checkbox HTML for each skill
         el.innerHTML = skills.map((skill, index) => {
             const id = `skill-check-${index}`;
             const checked = selected.includes(skill) ? 'checked' : '';
@@ -604,12 +691,14 @@
         }).join('');
     }
 
+    // Gets only the skills that are checked
     function getSelectedSkills() {
         return Array.from(document.querySelectorAll('.resume-skill-check:checked'))
             .map(box => box.value.trim())
             .filter(skill => skill.length > 0);
     }
 
+    // Split the certification and award into a clean list
     function getCertItems() {
         return val('txtCertsIO')
             .split(/,|\n/)
@@ -617,19 +706,24 @@
             .filter(cert => cert.length > 0);
     }
 
+    // Displays the certifications as checkboxes
     function renderCertsList(selectedCerts = null) {
         const certs = getCertItems();
         const el = document.getElementById('certs-list');
 
+        // Stops if the certifications list element does not exist
         if (!el) return;
 
+        // Shows a message if no certifications have been entered
         if (!certs.length) {
             el.innerHTML = '<p class="text-muted small">Add certifications or awards above to choose which ones appear on your resume.</p>';
             return;
         }
 
+        // Uses selected certifications if provided, otherwise selects all certifications
         const selected = selectedCerts || certs;
 
+        // Builds checkbox HTML for each certification
         el.innerHTML = certs.map((cert, index) => {
             const id = `cert-check-${index}`;
             const checked = selected.includes(cert) ? 'checked' : '';
@@ -646,15 +740,19 @@
         }).join('');
     }
 
+    // Gets only the certifications that are checked
     function getSelectedCerts() {
         return Array.from(document.querySelectorAll('.resume-cert-check:checked'))
             .map(box => box.value.trim())
             .filter(cert => cert.length > 0);
     }
 
+    // Gets AI suggestions for either skills or achievements
     async function getAI(type) {
+        // Gets the saved Gemini API key from the browser
         const apiKey = localStorage.getItem('geminiApiKey');
 
+        // If there is no API key then it will ask the user to add one
         if (!apiKey) {
             await Swal.fire({
                 icon: 'info',
@@ -669,20 +767,25 @@
 
         let context = '';
 
+        // Uses the skills box as context for skill suggestion
         if (type === 'skills') {
             context = val('txtSkillsIO');
 
             if (!context) {
                 return toast('warning', 'Enter a few skills or keywords first so AI has something to work with');
             }
+
+        // Uses job details as context for achievement suggestions
         } else if (type === 'achievements') {
             context = val('txtDetails');
 
+            // Counts non-empty lines in the job details box
             const lines = context
                 .split('\n')
                 .map(line => line.trim())
                 .filter(line => line.length > 0);
 
+            // Requires at least 3 lines so AI has enough context
             if (lines.length < 3) {
                 return toast('warning', 'Enter at least 3 responsibilities or achievements first');
             }
@@ -690,6 +793,7 @@
             return toast('warning', 'This AI option is no longer available');
         }
 
+        // Shows a loading popup while waiting for AI
         Swal.fire({
             title: 'AI is thinking...',
             allowOutsideClick: false,
@@ -697,10 +801,13 @@
         });
 
         try {
+            // Sends the request to the backend AI route
             const res = await api('/ai-generate', 'POST', { type, context, apiKey });
 
+            // Closes the loading popup
             Swal.close();
 
+            // Adds AI skill suggestions to the skills input
             if (type === 'skills') {
                 const current = val('txtSkillsIO');
                 set('txtSkillsIO', current ? `${current}, ${res.suggestion}` : res.suggestion);
@@ -708,35 +815,48 @@
                 toast('success', '2 skill suggestions added');
             }
 
+            // Adds AI achievement suggestions to the job details input
             if (type === 'achievements') {
                 const current = val('txtDetails');
                 set('txtDetails', current ? `${current}\n${res.suggestion}` : res.suggestion);
                 toast('success', '2 achievement suggestions added');
             }
         } catch (err) {
+            // Closes the loading popup if AI fails
             Swal.close();
+
+            // Shows an error message if the AI request fails
             alertErr('AI error: ' + err.message + '\n\nCheck that your Gemini API key is valid.');
         }
     }
 
+    // Saves selected skills and certifications then it will build the resume preview
     async function saveExtras() {
         const selectedSkills = getSelectedSkills();
         const selectedCerts = getSelectedCerts();
 
+        // Saves selected skills if any are checked, otherwise saves the full text box
         const skillsToSave = selectedSkills.length ? selectedSkills.join(', ') : val('txtSkillsIO');
+
+        // Saves selected certifications if any are checked, otherwise saves the full text box
         const certsToSave = selectedCerts.length ? selectedCerts.join(', ') : val('txtCertsIO');
 
+        // Sends extras to the backend
         await api('/extras', 'POST', {
             skills: skillsToSave,
             certs: certsToSave
         });
 
         toast('success', 'Saved! Building preview...');
+
+        // Builds the resume preview after saving
         await previewResume();
     }
 
+    // Builds and shows the resume preview
     async function previewResume() {
         try {
+            // Loads all resume data at the same time
             const [p, jobs, rel, edu, ex] = await Promise.all([
                 api('/profile'),
                 api('/jobs'),
@@ -745,24 +865,31 @@
                 api('/extras'),
             ]);
 
+            // Gets all job checkboxes
             const jobCheckboxes = Array.from(document.querySelectorAll('.resume-job-check'));
 
+            // Gets the IDs of checked jobs
             const selectedJobIds = jobCheckboxes
                 .filter(box => box.checked)
                 .map(box => Number(box.value));
 
+            // Uses checked jobs if checkboxes exist otherwise uses all jobs
             const selectedJobs = jobCheckboxes.length
                 ? jobs.filter(j => selectedJobIds.includes(j.id))
                 : jobs;
 
+            // Gets selected skills for the resume
             const selectedSkills = getSelectedSkills();
             const skillsForResume = selectedSkills.length ? selectedSkills.join(', ') : ex.skills;
 
+            // Gets selected certifications for the resume
             const selectedCerts = getSelectedCerts();
             const certsForResume = selectedCerts.length ? selectedCerts.join(', ') : ex.certs;
 
+            // Starts the resume HTML
             let h = '';
 
+            // Adds the resume header with contact information
             h += `
                 <h1 class="text-center mb-1">${esc(p.name||'Your Name')}</h1>
                 <p class="text-center text-muted mb-0">
@@ -773,6 +900,7 @@
                 <hr class="my-3">
             `;
 
+            // Adds the experience section if jobs exist
             if (selectedJobs.length) {
                 h += '<h5 class="mt-3">Experience</h5>';
 
@@ -791,6 +919,7 @@
                     </div>`).join('');
             }
 
+            // Adds projects and relevant experience
             if (rel.length) {
                 h += '<h5 class="mt-3">Projects &amp; Relevant Experience</h5>';
 
@@ -801,6 +930,7 @@
                     </div>`).join('');
             }
 
+            // Adds education entries
             if (edu.length) {
                 h += '<h5 class="mt-3">Education</h5>';
 
@@ -814,35 +944,45 @@
                     </div>`).join('');
             }
 
+            // Adds skills if available
             if (skillsForResume) {
                 h += '<h5 class="mt-3">Skills</h5>';
                 h += `<p style="font-size:.9rem;">${esc(skillsForResume)}</p>`;
             }
 
+            // Adds certifications and awards if available
             if (certsForResume) {
                 h += '<h5 class="mt-3">Certifications &amp; Awards</h5>';
                 h += `<p style="font-size:.9rem;">${esc(certsForResume)}</p>`;
             }
 
+            // Places the resume HTML into the preview area
             document.getElementById('resume-out').innerHTML = h;
+
+            // Hides the builder and shows the preview
             document.getElementById('main-workspace').style.display = 'none';
             document.getElementById('preview-wrap').style.display = 'block';
 
+            // Scrolls to the top of the preview
             window.scrollTo({ top: 0, behavior: 'smooth' });
         } catch (err) {
             alertErr('Preview error: ' + err.message);
         }
     }
 
+    // Leaves the resume preview and returns to the builder
     function exitPreview() {
         document.getElementById('preview-wrap').style.display = 'none';
         document.getElementById('main-workspace').style.display = 'block';
     }
 
+    // Runs when the page first loads
     (async () => {
         try {
+            // Loads saved profile data
             const p = await api('/profile');
 
+            // Fills contact fields if profile data exists
             if (p.name) {
                 set('txtName', p.name);
                 set('txtEmail', p.email);
@@ -852,13 +992,17 @@
                 set('txtState', p.state);
             }
 
+            // Loads saved jobs, education, and relevant experience at the same time
             await Promise.all([loadJobs(), loadEdu(), loadRel()]);
 
+            // Loads saved skills and certifications
             const ex = await api('/extras');
 
+            // Fills the skills and certifications fields if saved data exists
             if (ex.skills) set('txtSkillsIO', ex.skills);
             if (ex.certs) set('txtCertsIO', ex.certs);
 
+            // Builds the checkbox lists for skills and certifications
             renderSkillsList();
             renderCertsList();
         } catch (err) {
@@ -866,14 +1010,17 @@
         }
     })();
 
+    // Updates the skills checkbox list whenever the skills text changes
     document.getElementById('txtSkillsIO').addEventListener('input', () => {
         renderSkillsList();
     });
 
+    // Updates the certifications checkbox list whenever the certifications text changes
     document.getElementById('txtCertsIO').addEventListener('input', () => {
         renderCertsList();
     });
 </script>
+
 
 
 </body>
