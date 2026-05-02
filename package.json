@@ -1,0 +1,28 @@
+{
+  
+  "name": "resume-builder",
+  "version": "1.0.0",
+  "description": "A local resume builder with SQLite storage and Gemini AI suggestions.",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "main.js",
+  "scripts": {
+    "start": "node server.js",
+    "electron": "electron .",
+    "test": "echo \"No tests configured yet\""
+  },
+  "dependencies": {
+    "@google/genai": "^1.50.1",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "sqlite3": "^6.0.1",
+    "uuid": "^14.0.0"
+  },
+  "devDependencies": {
+    "electron": "^41.5.0"
+  }
+}
+
+

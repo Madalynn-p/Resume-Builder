@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume.Pro – Resume Builder</title>
+
+    <link href="css/bootstrapcdn.min.css" rel="stylesheet">
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+
+    <style>
+        .panel { display: none; }
+        .panel.active { display: block; }
+        #preview-wrap { display: none; }
+        @media print {
+            .no-print { display: none !important; }
+            #resume-out { box-shadow: none !important; border: none !important; }
+        }
+        #resume-out h5 {
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid currentColor;
+            padding-bottom: 4px;
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+<!-- NAV -->
+<nav class="navbar navbar-dark bg-primary shadow-sm mb-4 no-print">
+    <div class="container">
+        <span class="navbar-brand fw-bold fs-4">Resume<span class="text-warning">.</span>Pro</span>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-light btn-sm" onclick="openSettings()" aria-label="Open settings"> Settings</button>
+            <button class="btn btn-warning btn-sm fw-semibold" onclick="previewResume()" aria-label="Preview resume"> Preview Resume </button>
+        </div>
+    </div>
+</nav>
+
+<!-- MAIN -->
+<main class="container">
+    <div class="row justify-content-center">
+        <div class="card-body col-12 col-xl-10 col-lg-10">
+
+            <!-- Progress bar -->
+            <div class="mb-4 no-print">
+                <div class="progress" style="height:30px;"
+                     role="progressbar" aria-label="Resume completion progress"
+                     aria-valuenow="20" aria-valuemin="0" aria-valuemax="100">
+                    <div id="progressBar"
+                         class="progress-bar progress-bar-striped progress-bar-animated bg-success fw-semibold"
+                         style="width:20%;">
+                        Step 1 of 5: Contact
+                    </div>
+                </div>
+            </div>
+
+            <!-- EDITOR -->
+            <div id="main-workspace" class="no-print">
+                <form id="resumeForm" class="needs-validation" novalidate>
+
+                    <!-- PANEL 0 – Contact -->
+                    <div class="panel active card shadow-sm p-4" id="panel-0">
+                        <h2 class="h5 mb-2">1. Contact Details</h2>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="txtName">Full Name</label>
+                            <input id="txtName" type="text" class="form-control" placeholder="Jane Doe" required aria-required="true">
+                            <div class="invalid-feedback">Please enter your name.</div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-sm-9 mb-3">
+                                <label class="form-label" for="txtEmail">Email</label>
+                                <input id="txtEmail" type="email" class="form-control" placeholder="jane@example.com" required aria-required="true">
+                                <div class="invalid-feedback">Please enter a valid email.</div>
+                            </div>
+                            <div class="col-sm-6 mb-3">
+                                <label class="form-label" for="txtPhone">Phone</label>
+                                <input id="txtPhone" type="tel" class="form-control" placeholder="(555) 555-5555" required aria-required="true">
+                                <div class="invalid-feedback">Please enter your phone number.</div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="txtAddress">Street Address</label>
+                            <input id="txtAddress" type="text" class="form-control" placeholder="123 Main St" required aria-required="true">
+                            <div class="invalid-feedback">Please enter your address.</div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-sm-8 mb-3">
+                                <label class="form-label" for="txtCity">City</label>
+                                <input id="txtCity" type="text" class="form-control" placeholder="Nashville" required aria-required="true">
+                                <div class="invalid-feedback">Please enter your city.</div>
+                            </div>
+                            <div class="col-sm-4 mb-3">
+                                <label class="form-label" for="txtState">State</label>
+                                <input id="txtState" type="text" class="form-control" placeholder="TN" required aria-required="true">
+                                <div class="invalid-feedback">Please enter your state.</div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-primary float-end" onclick="validateAndGo(saveProfile, 1)"> Save &amp; Next → </button>
+                    </div>
+
+                    <!-- PANEL 1 – Work Experience -->
+                    <div class="panel card shadow-sm p-4" id="panel-1">
+                        <h2 class="h5 mb-3">2. Work Experience</h2>
+
+                        <div class="bg-light p-3 rounded mb-3">
+                            <div class="row">
+                                <div class="col-sm-6 mb-2">
+                                    <label class="form-label" for="txtCompany">Company</label>
+                                    <input id="txtCompany" type="text" class="form-control" placeholder="Acme Corp">
+                                </div>
+                                <div class="col-sm-6 mb-2">
+                                    <label class="form-label" for="txtRole">Role / Title</label>
+                                    <input id="txtRole" type="text" class="form-control" placeholder="Software Engineer">
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-6 mb-2">
+                                    <label class="form-label" for="txtStartYear">Start Year</label>
+                                    <input id="txtStartYear" type="text" class="form-control" placeholder="2022">
+                                </div>
+                                <div class="col-6 mb-2">
+                                    <label class="form-label" for="txtEndYear">End Year</label>
+                                    <input id="txtEndYear" type="text" class="form-control" placeholder="Present">
+                                </div>
+                            </div>
+
+                            <label class="form-label mt-1" for="txtDetails">Responsibilities / Achievements</label>
+                            <textarea id="txtDetails" class="form-control mb-2" rows="3"placeholder="Describe what you did and achieved…"></textarea>
+                            <button type="button" class="btn btn-info text-white w-100 mb-2" onclick="getAI('achievements')">Suggest 2 Responsibilities / Achievements </button>
+                          
+                            <button type="button" class="btn btn-dark w-100" onclick="addJob()"> + Add Job </button>
+                        </div>
+
+                        <div id="jobs-list" class="mb-3" aria-live="polite"></div>
+
+                        <div class="d-flex justify-content-between">
+                            <button type="button" class="btn btn-secondary" onclick="goToStep(0)">← Back</button>
+                            <button type="button" class="btn btn-primary"   onclick="goToStep(2)">Next →</button>
+                        </div>
+                    </div>
+
+                    <!-- PANEL 2 – Education -->
+                    <div class="panel card shadow-sm p-4" id="panel-2">
+                        <h2 class="h5 mb-3">3. Education</h2>
+
+                        <div class="bg-light p-3 rounded mb-3">
+                            <label class="form-label" for="txtSchool">School / University</label>
+                            <input id="txtSchool" type="text" class="form-control mb-2" placeholder="Tennessee Tech University">
+
+                            <label class="form-label" for="txtDegree">Degree &amp; Field</label>
+                            <input id="txtDegree" type="text" class="form-control mb-2" placeholder="BS Computer Science">
+
+                            <div class="row">
+                                <div class="col-sm-7 mb-2">
+                                    <label class="form-label" for="txtEduField">Field (optional)</label>
+                                    <input id="txtEduField" type="text" class="form-control" placeholder="Information Systems">
+                                </div>
+                                <div class="col-sm-5 mb-2">
+                                    <label class="form-label" for="txtEduYear">Grad Year</label>
+                                    <input id="txtEduYear" type="text" class="form-control" placeholder="2025">
+                                </div>
+                            </div>
+
+                            <button type="button" class="btn btn-dark w-100 mt-1" onclick="addEducation()"> + Add Education</button>
+                        </div>
+
+                        <div id="edu-list" class="mb-3" aria-live="polite"></div>
+
+                        <div class="d-flex justify-content-between">
+                            <button type="button" class="btn btn-secondary" onclick="goToStep(1)">← Back</button>
+                            <button type="button" class="btn btn-primary"   onclick="goToStep(3)">Next →</button>
+                        </div>
+                    </div>
+
+                    <!-- PANEL 3 – Relevant Experience -->
+                    <div class="panel card shadow-sm p-4" id="panel-3">
+                        <h2 class="h5 mb-3">4. Relevant Experience <small class="text-muted">(Optional)</small></h2>
+
+                        <div class="bg-light p-3 rounded mb-3">
+                            <div class="row">
+                                <div class="col-sm-4 mb-2">
+                                    <label class="form-label" for="txtRelType">Type</label>
+                                    <select id="txtRelType" class="form-select">
+                                        <option>Project</option>
+                                        <option>Internship</option>
+                                        <option>Class</option>
+                                        <option>Volunteer</option>
+                                        <option>Other</option>
+                                    </select>
+                                </div>
+                                <div class="col-sm-8 mb-2">
+                                    <label class="form-label" for="txtRelTitle">Title</label>
+                                    <input id="txtRelTitle" type="text" class="form-control" placeholder="Resume Builder App">
+                                </div>
+                            </div>
+
+                            <label class="form-label mt-1" for="txtRelDesc">Description</label>
+                            <textarea id="txtRelDesc" class="form-control mb-2" rows="3" placeholder="What did you build or learn?"></textarea>
+
+                            <button type="button" class="btn btn-dark w-100" onclick="addRelevant()"> + Add Experience </button>
+                        </div>
+
+                        <div id="rel-list" class="mb-3" aria-live="polite"></div>
+                        <div class="d-flex justify-content-between">
+                            <button type="button" class="btn btn-secondary" onclick="goToStep(2)">← Back</button>
+                            <button type="button" class="btn btn-primary"   onclick="goToStep(4)">Next →</button>
+                        </div>
+                    </div>
+
+                    <!-- PANEL 4 – Skills & AI -->
+                    <div class="panel card shadow-sm p-4" id="panel-4">
+                        <h2 class="h5 mb-3">5. Skills &amp; AI</h2>
+
+                        <div class="d-flex justify-content-between align-items-center mb-1 flex-wrap gap-2">
+                            <label class="form-label fw-semibold mb-0" for="txtSkillsIO">Skills</label>
+                            <button type="button" class="btn btn-info text-white btn-sm" onclick="getAI('skills')">  Auto-Generate Skill </button>
+                        </div>
+                        <textarea id="txtSkillsIO" class="form-control mb-3" rows="3" placeholder="JavaScript, Node.js, Project Management…"></textarea>
+                        <!-- Skill selector: lets users choose which saved skills appear on the final resume. -->
+                        <div id="skills-list" class="mb-3" aria-live="polite">
+                             <p class="text-muted small">Add skills above to choose which ones appear on your resume.</p>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mb-1 flex-wrap gap-2">
+                            <label class="form-label fw-semibold mb-0" for="txtCertsIO">Certifications &amp; Awards</label>
+                            
+                        </div>
+                        <textarea id="txtCertsIO" class="form-control mb-3" rows="2" placeholder="AWS Certified Developer, Dean's List…"></textarea>
+                        <!-- Certification and award selector: lets users choose which items appear on the final resume. -->
+                        <div id="certs-list" class="mb-3" aria-live="polite">
+                            <p class="text-muted small">Add certifications or awards above to choose which ones appear on your resume.</p>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <button type="button" class="btn btn-secondary" onclick="goToStep(3)">← Back</button>
+                            <button type="button" class="btn btn-success fw-semibold" onclick="saveExtras()"> Save &amp; Preview ✓ </button>
+                        </div>
+                    </div>
+                </form>
+               
+            </div><!-- end #main-workspace -->
+            <div class="d-flex align-items-center justify-content-center p-2 ">
+                 <button class="btn btn-outline-dark btn-sm" onclick="showCredits()" aria-label="View library credits"> Credits </button>
+            </div>
+            
+
+            <!-- PREVIEW -->
+            <div id="preview-wrap">
+                <div class="d-flex gap-2 mb-3 no-print flex-wrap">
+                    <button class="btn btn-outline-secondary" onclick="exitPreview()">← Back to Editor</button>
+                    <button class="btn btn-primary" onclick="window.print()">🖨 Print / Save as PDF</button>
+                </div>
+                <div class="card shadow p-4 p-md-5 bg-white" id="resume-out" aria-label="Resume preview"></div>
+            </div>
+        
+        </div>
+        
+    </div>
+</main>
+
+<!-- This starts the JS section of the code -->
+<script src="js/bootstrap.bundle.min.js"></script>
+<script src="js/sweetalert2@11.min.js"></script>
+<!-- This script is brought to you by Claude, Gemini, and Codex
+ I was not about to type this all out I gave it the html ab=nd backend and took it to go ham 
+ but I have look though it an explained why it did that and what it does so this is super long appologies -->
+<script>
+    // decide to do the /api thing 
+    const API = "/api";
+
+    const val = (id) => document.getElementById(id).value.trim();
+    const set = (id, v) => document.getElementById(id).value = v;
+
+    const esc = (s) =>
+        String(s || '')
+            .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+            .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+    async function api(path, method = 'GET', body = null) {
+        const opts = { method, headers: { 'Content-Type': 'application/json' } };
+        if (body) opts.body = JSON.stringify(body);
+
+        const r = await fetch(`${API}${path}`, opts);
+
+        if (!r.ok) {
+            const err = await r.json().catch(() => ({ error: r.statusText }));
+            throw new Error(err.error || `HTTP ${r.status}`);
+        }
+
+        return r.json();
+    }
+
+    const toast = (icon, title) => Swal.fire({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 2200,
+        timerProgressBar: true,
+        icon,
+        title
+    });
+
+    const alertErr = (msg) =>
+        Swal.fire({ icon: 'error', title: 'Oops!', text: msg });
+
+    const confirmDel = (title, text) =>
+        Swal.fire({
+            icon: 'warning',
+            title,
+            text,
+            showCancelButton: true,
+            confirmButtonText: 'Yes, remove it'
+        }).then(r => r.isConfirmed);
+ //These are the credits it is shown by the sweet alert 
+    function showCredits() {
+        Swal.fire({
+            title: 'Library Credits',
+            html: `
+                <p class="text-start mb-2">Resume.Pro uses these local libraries and tools:</p>
+                <ul class="text-start">
+                    <li>Bootstrap for layout and styling</li>
+                    <li>SweetAlert2 for popup messages</li>
+                    <li>Express for RESTful backend routes</li>
+                    <li>SQLite for local database storage</li>
+                    <li>Google Gemini API for resume suggestions</li>
+                </ul>
+            `,
+            icon: 'info'
+        });
+    }
+// This the the setting menue in the top on the page 
+    function openSettings() {
+        const saved = localStorage.getItem('geminiApiKey') || '';
+// Sweet aleart to fill in this is where you place your API key 
+        Swal.fire({
+            title: 'Settings',
+            html: `
+                <label class="form-label text-start d-block">Google Gemini API Key</label>
+                <input id="swal-api-key" type="password" class="form-control"
+                       placeholder="Paste your Gemini API key..." value="${esc(saved)}">
+                <p class="text-muted mt-2 small text-start">
+                    Stored only in your browser and only sent to the local backend for Gemini requests.
+                </p>`,
+            confirmButtonText: 'Save Key',
+            showCancelButton: true,
+            preConfirm: () => {
+                const k = document.getElementById('swal-api-key').value.trim();
+                if (!k) return Swal.showValidationMessage('Please paste a valid API key');
+                return k;
+            }
+        }).then(result => {
+            if (result.isConfirmed) {
+                localStorage.setItem('geminiApiKey', result.value);
+                toast('success', 'API key saved');
+            }
+        });
+    }
+// The go To Step functions allows you to step though the aplication this lets you go back and fowarth between the pages 
+    function goToStep(n) {
+        document.querySelectorAll('.panel').forEach((p, i) =>
+            p.classList.toggle('active', i === n)
+        );
+
+        const steps = [
+            { width: 20,  label: 'Step 1 of 5: Contact' },
+            { width: 40,  label: 'Step 2 of 5: Work Experience' },
+            { width: 60,  label: 'Step 3 of 5: Education' },
+            { width: 80,  label: 'Step 4 of 5: Relevant Experience' },
+            { width: 100, label: 'Step 5 of 5: Skills & AI' },
+        ];
+
+        const { width, label } = steps[n] || steps[0];
+        const bar = document.getElementById('progressBar');
+
+        bar.style.width = width + '%';
+        bar.setAttribute('aria-valuenow', width);
+        bar.textContent = label;
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    async function validateAndGo(fn, next) {
+        const form = document.getElementById('resumeForm');
+
+        if (!form.checkValidity()) {
+            form.classList.add('was-validated');
+            return;
+        }
+
+        form.classList.remove('was-validated');
+
+        try {
+            await fn();
+            goToStep(next);
+        } catch (err) {
+            alertErr('Could not save: ' + err.message);
+        }
+    }
+
+    async function saveProfile() {
+        await api('/profile', 'POST', {
+            name: val('txtName'),
+            email: val('txtEmail'),
+            phone: val('txtPhone'),
+            address: val('txtAddress'),
+            city: val('txtCity'),
+            state: val('txtState'),
+        });
+
+        toast('success', 'Contact details saved');
+    }
+
+    async function addJob() {
+        if (!val('txtCompany') || !val('txtRole')) {
+            return toast('warning', 'Company and role are required');
+        }
+
+        await api('/jobs', 'POST', {
+            company: val('txtCompany'),
+            role: val('txtRole'),
+            start_year: val('txtStartYear'),
+            end_year: val('txtEndYear'),
+            details: val('txtDetails'),
+        });
+
+        ['txtCompany','txtRole','txtStartYear','txtEndYear','txtDetails'].forEach(id => set(id,''));
+
+        toast('success', 'Job added');
+        await loadJobs();
+    }
+
+    async function loadJobs() {
+        const jobs = await api('/jobs');
+        const el = document.getElementById('jobs-list');
+
+        if (!jobs.length) {
+            el.innerHTML = '<p class="text-muted small">No jobs added yet.</p>';
+            return;
+        }
+
+        el.innerHTML = jobs.map(j => `
+            <div class="d-flex justify-content-between align-items-start border-bottom py-2">
+                <div>
+                    <div class="form-check">
+                        <input class="form-check-input resume-job-check" type="checkbox"
+                               value="${j.id}" id="job-check-${j.id}" checked>
+                        <label class="form-check-label" for="job-check-${j.id}">
+                            <strong>${esc(j.company)}</strong> - ${esc(j.role)}
+                        </label>
+                    </div>
+                    <small class="text-muted">
+                        ${esc(j.start_year||'')}${j.end_year?' - '+esc(j.end_year):''}
+                    </small>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-danger ms-2"
+                        onclick="delJob(${j.id})" aria-label="Remove ${esc(j.company)}">X</button>
+            </div>`).join('');
+    }
+
+    async function delJob(id) {
+        if (!await confirmDel('Remove this job?', 'This cannot be undone.')) return;
+
+        await api(`/jobs/${id}`, 'DELETE');
+
+        toast('success', 'Job removed');
+        await loadJobs();
+    }
+
+    async function addEducation() {
+        if (!val('txtSchool')) {
+            return toast('warning', 'School name is required');
+        }
+
+        await api('/education', 'POST', {
+            school: val('txtSchool'),
+            degree_type: val('txtDegree'),
+            field: val('txtEduField'),
+            year: val('txtEduYear'),
+        });
+
+        ['txtSchool','txtDegree','txtEduField','txtEduYear'].forEach(id => set(id,''));
+
+        toast('success', 'Education added');
+        await loadEdu();
+    }
+
+    async function loadEdu() {
+        const edus = await api('/education');
+        const el = document.getElementById('edu-list');
+
+        if (!edus.length) {
+            el.innerHTML = '<p class="text-muted small">No education added yet.</p>';
+            return;
+        }
+
+        el.innerHTML = edus.map(e => `
+            <div class="d-flex justify-content-between align-items-start border-bottom py-2">
+                <div>
+                    <strong>${esc(e.school)}</strong><br>
+                    <small class="text-muted">
+                        ${esc(e.degree_type||'')}${e.year?' · '+esc(e.year):''}
+                    </small>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-danger ms-2"
+                        onclick="delEdu(${e.id})" aria-label="Remove ${esc(e.school)}">X</button>
+            </div>`).join('');
+    }
+
+    async function delEdu(id) {
+        if (!await confirmDel('Remove this education entry?', 'This cannot be undone.')) return;
+
+        await api(`/education/${id}`, 'DELETE');
+
+        toast('success', 'Education removed');
+        await loadEdu();
+    }
+
+    async function addRelevant() {
+        if (!val('txtRelTitle')) {
+            return toast('warning', 'Title is required');
+        }
+
+        await api('/relevant', 'POST', {
+            type: val('txtRelType'),
+            title: val('txtRelTitle'),
+            desc: val('txtRelDesc'),
+        });
+
+        ['txtRelTitle','txtRelDesc'].forEach(id => set(id,''));
+
+        toast('success', 'Experience added');
+        await loadRel();
+    }
+
+    async function loadRel() {
+        const items = await api('/relevant');
+        const el = document.getElementById('rel-list');
+
+        if (!items.length) {
+            el.innerHTML = '<p class="text-muted small">No entries added yet.</p>';
+            return;
+        }
+
+        el.innerHTML = items.map(i => `
+            <div class="d-flex justify-content-between align-items-start border-bottom py-2">
+                <div>
+                    <span class="badge bg-secondary me-1">${esc(i.type)}</span>
+                    <strong>${esc(i.title)}</strong>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-danger ms-2"
+                        onclick="delRel(${i.id})" aria-label="Remove ${esc(i.title)}">X</button>
+            </div>`).join('');
+    }
+
+    async function delRel(id) {
+        if (!await confirmDel('Remove this entry?', 'This cannot be undone.')) return;
+
+        await api(`/relevant/${id}`, 'DELETE');
+
+        toast('success', 'Entry removed');
+        await loadRel();
+    }
+
+    function getSkillItems() {
+        return val('txtSkillsIO')
+            .split(/,|\n/)
+            .map(skill => skill.trim())
+            .filter(skill => skill.length > 0);
+    }
+
+    function renderSkillsList(selectedSkills = null) {
+        const skills = getSkillItems();
+        const el = document.getElementById('skills-list');
+
+        if (!el) return;
+
+        if (!skills.length) {
+            el.innerHTML = '<p class="text-muted small">Add skills above to choose which ones appear on your resume.</p>';
+            return;
+        }
+
+        const selected = selectedSkills || skills;
+
+        el.innerHTML = skills.map((skill, index) => {
+            const id = `skill-check-${index}`;
+            const checked = selected.includes(skill) ? 'checked' : '';
+
+            return `
+                <div class="form-check">
+                    <input class="form-check-input resume-skill-check" type="checkbox"
+                           value="${esc(skill)}" id="${id}" ${checked}>
+                    <label class="form-check-label" for="${id}">
+                        ${esc(skill)}
+                    </label>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function getSelectedSkills() {
+        return Array.from(document.querySelectorAll('.resume-skill-check:checked'))
+            .map(box => box.value.trim())
+            .filter(skill => skill.length > 0);
+    }
+
+    function getCertItems() {
+        return val('txtCertsIO')
+            .split(/,|\n/)
+            .map(cert => cert.trim())
+            .filter(cert => cert.length > 0);
+    }
+
+    function renderCertsList(selectedCerts = null) {
+        const certs = getCertItems();
+        const el = document.getElementById('certs-list');
+
+        if (!el) return;
+
+        if (!certs.length) {
+            el.innerHTML = '<p class="text-muted small">Add certifications or awards above to choose which ones appear on your resume.</p>';
+            return;
+        }
+
+        const selected = selectedCerts || certs;
+
+        el.innerHTML = certs.map((cert, index) => {
+            const id = `cert-check-${index}`;
+            const checked = selected.includes(cert) ? 'checked' : '';
+
+            return `
+                <div class="form-check">
+                    <input class="form-check-input resume-cert-check" type="checkbox"
+                           value="${esc(cert)}" id="${id}" ${checked}>
+                    <label class="form-check-label" for="${id}">
+                        ${esc(cert)}
+                    </label>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function getSelectedCerts() {
+        return Array.from(document.querySelectorAll('.resume-cert-check:checked'))
+            .map(box => box.value.trim())
+            .filter(cert => cert.length > 0);
+    }
+
+    async function getAI(type) {
+        const apiKey = localStorage.getItem('geminiApiKey');
+
+        if (!apiKey) {
+            await Swal.fire({
+                icon: 'info',
+                title: 'API Key Required',
+                text: 'Please add your Gemini API key in Settings first.',
+                confirmButtonText: 'Open Settings'
+            });
+
+            openSettings();
+            return;
+        }
+
+        let context = '';
+
+        if (type === 'skills') {
+            context = val('txtSkillsIO');
+
+            if (!context) {
+                return toast('warning', 'Enter a few skills or keywords first so AI has something to work with');
+            }
+        } else if (type === 'achievements') {
+            context = val('txtDetails');
+
+            const lines = context
+                .split('\n')
+                .map(line => line.trim())
+                .filter(line => line.length > 0);
+
+            if (lines.length < 3) {
+                return toast('warning', 'Enter at least 3 responsibilities or achievements first');
+            }
+        } else {
+            return toast('warning', 'This AI option is no longer available');
+        }
+
+        Swal.fire({
+            title: 'AI is thinking...',
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading()
+        });
+
+        try {
+            const res = await api('/ai-generate', 'POST', { type, context, apiKey });
+
+            Swal.close();
+
+            if (type === 'skills') {
+                const current = val('txtSkillsIO');
+                set('txtSkillsIO', current ? `${current}, ${res.suggestion}` : res.suggestion);
+                renderSkillsList();
+                toast('success', '2 skill suggestions added');
+            }
+
+            if (type === 'achievements') {
+                const current = val('txtDetails');
+                set('txtDetails', current ? `${current}\n${res.suggestion}` : res.suggestion);
+                toast('success', '2 achievement suggestions added');
+            }
+        } catch (err) {
+            Swal.close();
+            alertErr('AI error: ' + err.message + '\n\nCheck that your Gemini API key is valid.');
+        }
+    }
+
+    async function saveExtras() {
+        const selectedSkills = getSelectedSkills();
+        const selectedCerts = getSelectedCerts();
+
+        const skillsToSave = selectedSkills.length ? selectedSkills.join(', ') : val('txtSkillsIO');
+        const certsToSave = selectedCerts.length ? selectedCerts.join(', ') : val('txtCertsIO');
+
+        await api('/extras', 'POST', {
+            skills: skillsToSave,
+            certs: certsToSave
+        });
+
+        toast('success', 'Saved! Building preview...');
+        await previewResume();
+    }
+
+    async function previewResume() {
+        try {
+            const [p, jobs, rel, edu, ex] = await Promise.all([
+                api('/profile'),
+                api('/jobs'),
+                api('/relevant'),
+                api('/education'),
+                api('/extras'),
+            ]);
+
+            const jobCheckboxes = Array.from(document.querySelectorAll('.resume-job-check'));
+
+            const selectedJobIds = jobCheckboxes
+                .filter(box => box.checked)
+                .map(box => Number(box.value));
+
+            const selectedJobs = jobCheckboxes.length
+                ? jobs.filter(j => selectedJobIds.includes(j.id))
+                : jobs;
+
+            const selectedSkills = getSelectedSkills();
+            const skillsForResume = selectedSkills.length ? selectedSkills.join(', ') : ex.skills;
+
+            const selectedCerts = getSelectedCerts();
+            const certsForResume = selectedCerts.length ? selectedCerts.join(', ') : ex.certs;
+
+            let h = '';
+
+            h += `
+                <h1 class="text-center mb-1">${esc(p.name||'Your Name')}</h1>
+                <p class="text-center text-muted mb-0">
+                    ${esc(p.email||'')}
+                    ${p.phone?' | '+esc(p.phone):''}
+                    ${p.city ?' | '+esc(p.city)+(p.state?', '+esc(p.state):''):''}
+                </p>
+                <hr class="my-3">
+            `;
+
+            if (selectedJobs.length) {
+                h += '<h5 class="mt-3">Experience</h5>';
+
+                h += selectedJobs.map(j => `
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between flex-wrap">
+                            <strong>${esc(j.company)}</strong>
+                            <span class="text-muted" style="font-size:.85rem;">
+                                ${esc(j.start_year||'')}${j.end_year?' - '+esc(j.end_year):''}
+                            </span>
+                        </div>
+                        <em>${esc(j.role)}</em>
+                        <p class="mt-1 mb-0" style="font-size:.9rem;">
+                            ${esc(j.details).replace(/\n/g,'<br>')}
+                        </p>
+                    </div>`).join('');
+            }
+
+            if (rel.length) {
+                h += '<h5 class="mt-3">Projects &amp; Relevant Experience</h5>';
+
+                h += rel.map(r => `
+                    <div class="mb-2">
+                        <strong>${esc(r.type)}: ${esc(r.title)}</strong><br>
+                        <span style="font-size:.9rem;">${esc(r.desc).replace(/\n/g,'<br>')}</span>
+                    </div>`).join('');
+            }
+
+            if (edu.length) {
+                h += '<h5 class="mt-3">Education</h5>';
+
+                h += edu.map(e => `
+                    <div class="mb-1 d-flex justify-content-between flex-wrap">
+                        <div>
+                            <strong>${esc(e.school)}</strong>
+                            <span class="text-muted"> - ${esc(e.degree_type||'')}</span>
+                        </div>
+                        ${e.year?'<span class="text-muted">'+esc(e.year)+'</span>':''}
+                    </div>`).join('');
+            }
+
+            if (skillsForResume) {
+                h += '<h5 class="mt-3">Skills</h5>';
+                h += `<p style="font-size:.9rem;">${esc(skillsForResume)}</p>`;
+            }
+
+            if (certsForResume) {
+                h += '<h5 class="mt-3">Certifications &amp; Awards</h5>';
+                h += `<p style="font-size:.9rem;">${esc(certsForResume)}</p>`;
+            }
+
+            document.getElementById('resume-out').innerHTML = h;
+            document.getElementById('main-workspace').style.display = 'none';
+            document.getElementById('preview-wrap').style.display = 'block';
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        } catch (err) {
+            alertErr('Preview error: ' + err.message);
+        }
+    }
+
+    function exitPreview() {
+        document.getElementById('preview-wrap').style.display = 'none';
+        document.getElementById('main-workspace').style.display = 'block';
+    }
+
+    (async () => {
+        try {
+            const p = await api('/profile');
+
+            if (p.name) {
+                set('txtName', p.name);
+                set('txtEmail', p.email);
+                set('txtPhone', p.phone);
+                set('txtAddress', p.address);
+                set('txtCity', p.city);
+                set('txtState', p.state);
+            }
+
+            await Promise.all([loadJobs(), loadEdu(), loadRel()]);
+
+            const ex = await api('/extras');
+
+            if (ex.skills) set('txtSkillsIO', ex.skills);
+            if (ex.certs) set('txtCertsIO', ex.certs);
+
+            renderSkillsList();
+            renderCertsList();
+        } catch (err) {
+            console.warn('Init load failed:', err.message);
+        }
+    })();
+
+    document.getElementById('txtSkillsIO').addEventListener('input', () => {
+        renderSkillsList();
+    });
+
+    document.getElementById('txtCertsIO').addEventListener('input', () => {
+        renderCertsList();
+    });
+</script>
+
+
+</body>
+</html>
