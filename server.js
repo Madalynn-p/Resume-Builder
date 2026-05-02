@@ -1,10 +1,5 @@
-/**
- * server.js – Resume.Pro Backend
- */
-
-// ─────────────────────────────────────────────────────────────
-// IMPORTS
-
+// This is the backend of the resume Builder 
+// Imports start here
 
 import { GoogleGenAI } from "@google/genai"
 import 'dotenv/config';                                      
@@ -14,36 +9,22 @@ import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-// ─────────────────────────────────────────────────────────────
-// APP SETUP
+
+// App setups 
 
 
 const app  = express();
 const PORT = 8000;
 
-// __dirname equivalent for ES modules
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);
 
 app.use(cors());           
 app.use(express.json());   
-
-
-
-// ─────────────────────────────────────────────────────────────
-// STATIC FILES
-// Serve the entire project folder as static assets so Bootstrap,
-// CSS, and JS files referenced from index.html are accessible.
-// ─────────────────────────────────────────────────────────────
 app.use(express.static(__dirname));
 
-// ─────────────────────────────────────────────────────────────
-// /resume ROUTE  ← serves the SPA
-//
-// Per the assignment requirement: the full application should be
-// accessible at /resume.  We serve index.html for both the root
-// path and /resume so either URL works.
-// ─────────────────────────────────────────────────────────────
+
 app.get('/', (req, res) => {
     res.redirect('/resume');
 });
@@ -54,19 +35,18 @@ app.get('/resume', (req, res) => {
 });
 
   
-// ─────────────────────────────────────────────────────────────
-// DATABASE SETUP
-// SQLite database stored locally – no server required.
+// Data base starts/initalizes 
+// SQLite database stored locally
 // db.serialize() ensures the CREATE TABLE statements run in order
-// before any other queries are executed.
-// ─────────────────────────────────────────────────────────────
+
+
 const db = new sqlite3.Database('./resume_data.db', (err) => {
     if (err) console.error('DB open error:', err.message);
     else     console.log('SQLite database connected.');
 });
 
 db.serialize(() => {
-    // profile – single row (id is always 1, enforced by CHECK)
+    // profile table – single row (id is always 1, enforced by CHECK)
     db.run(`
         CREATE TABLE IF NOT EXISTS profile (
             id      INTEGER PRIMARY KEY CHECK (id = 1),
@@ -79,7 +59,7 @@ db.serialize(() => {
         )
     `);
 
-    // jobs – multiple entries; start/end year stored as text for flexibility
+    // jobs table – multiple entries; start/end year stored as text for flexibility so you can put the word present
     db.run(`
         CREATE TABLE IF NOT EXISTS jobs (
             id         INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -91,7 +71,7 @@ db.serialize(() => {
         )
     `);
 
-    // education – multiple entries; field and year are optional
+    // education table 
     db.run(`
         CREATE TABLE IF NOT EXISTS education (
             id          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -102,7 +82,7 @@ db.serialize(() => {
         )
     `);
 
-    // relevant – projects, internships, classes, volunteer work, etc.
+    // relevant table – projects, internships, classes, volunteer work, etc.
     db.run(`
         CREATE TABLE IF NOT EXISTS relevant (
             id    INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -112,7 +92,7 @@ db.serialize(() => {
         )
     `);
 
-    // extras – single row for skills and certifications (id always 1)
+    // extras –  skills and certifications (id always 1) same as the other ids fields 
     db.run(`
         CREATE TABLE IF NOT EXISTS extras (
             id     INTEGER PRIMARY KEY CHECK (id = 1),
@@ -122,31 +102,35 @@ db.serialize(() => {
     `);
 });
 
-// ─────────────────────────────────────────────────────────────
-// AI ROUTE  POST /api/ai-generate
-// Move genAI inside the route so it uses the per-request key
-// Change this at the top of your file
 
+// AI api route/POST /api/ai-generate
+// This part was added by codex since the orginal one I had was broken but it works like the storybook one works 
 
-// ... inside the app.post('/api/ai-generate' ...
+// Same model you used 
 const model = "gemini-3-flash-preview";
 
 app.post('/api/ai-generate', async (req, res) => {
+    // Get the generation type, resume context, and Gemini API key from the request body
+    // type tells the server what to generate, such as "skills" or "achievements"
+    // context is the text the user already entere
+    // apiKey is the user's Gemini API key
     const { type, context, apiKey } = req.body;
-
+    // If no API key was sent, stop the request and return an error
     if (!apiKey) {
-        return res.status(400).json({ error: 'Missing Gemini API key' });
+        return res.status(400).json({ error: 'Missing Gemini API key' })
     }
-
+    // If the user did not provide any context, stop the request and return an error
+    // trim() removes empty spaces, so text like "   " counts as empty
     if (!context || !context.trim()) {
         return res.status(400).json({ error: 'Missing context for AI generation' });
     }
 
     try {
+         // Create a Gemini AI client using the API key from the user
         const genAI = new GoogleGenAI({ apiKey });
-
+        // This variable will hold the prompt that gets sent to Gemini
         let prompt = '';
-
+        // If the frontend asks for skill suggestions, build a skills prompt
         if (type === 'skills') {
             prompt = `
 You are helping improve a resume skills section.
@@ -158,7 +142,8 @@ Suggest exactly 2 additional relevant resume skills that fit with the existing s
 Do not repeat skills already listed.
 Return only the 2 skills as a comma-separated list.
 No explanation.
-`;
+`
+// The promot for the achivements works the same as the skills 
 } else if (type === 'achievements') {
     prompt = `
 You are helping improve a resume work experience section.
@@ -172,21 +157,24 @@ Do not repeat anything already listed.
 Do not invent specific numbers, percentages, company names, or tools unless they were already provided.
 Return only the 2 suggestions, each on its own line.
 No explanation.
-`;
-       
+`
+       // If type is not "skills" or "achievements", return an error
         } else {
             return res.status(400).json({ error: 'Invalid AI generation type' });
         }
-
+        // Send the prompt to Gemini and wait for the AI response
         const objResponse = await genAI.models.generateContent({
             model,
             contents: prompt,
         });
-
+        // Send the AI suggestion back to the frontend as JSON
+        // trim() removes extra spaces or blank lines from the AI response
         res.json({ suggestion: objResponse.text.trim() });
 
     } catch (error) {
+        // If anything goes wrong, log the error in the server console
         console.error('AI generation error:', error);
+        //Send a 500 error response back to the frontend
         res.status(500).json({ error: 'Error generating AI suggestion: ' + error.message });
     }
 });
@@ -194,7 +182,7 @@ No explanation.
 
 
 
-// PROFILE ROUTES
+// Profile 
 app.post('/api/profile', (req, res) => {
     const { name, email, phone, address, city, state } = req.body;
     db.run(
@@ -214,11 +202,11 @@ app.get('/api/profile', (req, res) => {
     });
 });
 
-// ─────────────────────────────────────────────────────────────
-// JOBS ROUTES
-// ─────────────────────────────────────────────────────────────
 
-/** Add a new job entry */
+// Jobs 
+
+
+// Add a new job entry 
 app.post('/api/jobs', (req, res) => {
     const { company, role, start_year, end_year, details } = req.body;
     db.run( `INSERT INTO jobs (company, role, start_year, end_year, details) VALUES (?, ?, ?, ?, ?)`,[company, role, start_year, end_year, details],
@@ -229,7 +217,7 @@ app.post('/api/jobs', (req, res) => {
     );
 });
 
-/** Retrieve all saved jobs (newest last, insertion order) */
+// Retrieve all saved jobs (newest last, insertion order) 
 app.get('/api/jobs', (req, res) => {
     db.all(`SELECT * FROM jobs`, (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
@@ -237,7 +225,7 @@ app.get('/api/jobs', (req, res) => {
     });
 });
 
-/** Delete a specific job by its database ID */
+//Delete a specific job by its database ID 
 app.delete('/api/jobs/:id', (req, res) => {
     db.run(`DELETE FROM jobs WHERE id = ?`, [req.params.id], (err) => {
         if (err) return res.status(500).json({ error: err.message });
@@ -245,11 +233,10 @@ app.delete('/api/jobs/:id', (req, res) => {
     });
 });
 
-// ─────────────────────────────────────────────────────────────
-// RELEVANT EXPERIENCE ROUTES  (projects, internships, etc.)
-// ─────────────────────────────────────────────────────────────
+// Relevent experince/ project and such done  (projects, internships, etc.)
 
-/** Add a new relevant experience entry */
+
+// Add a new relevant experience entry 
 app.post('/api/relevant', (req, res) => {
     const { type, title, desc } = req.body;
     db.run(
@@ -262,7 +249,7 @@ app.post('/api/relevant', (req, res) => {
     );
 });
 
-/** Retrieve all relevant experience entries */
+// Retrieve all relevant experience entries 
 app.get('/api/relevant', (req, res) => {
     db.all(`SELECT * FROM relevant`, (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
@@ -270,7 +257,7 @@ app.get('/api/relevant', (req, res) => {
     });
 });
 
-/** Delete a specific relevant experience entry by ID */
+// Delete a specific relevant experience entry by ID 
 app.delete('/api/relevant/:id', (req, res) => {
     db.run(`DELETE FROM relevant WHERE id = ?`, [req.params.id], (err) => {
         if (err) return res.status(500).json({ error: err.message });
@@ -278,11 +265,11 @@ app.delete('/api/relevant/:id', (req, res) => {
     });
 });
 
-// ─────────────────────────────────────────────────────────────
-// EDUCATION ROUTES
-// ─────────────────────────────────────────────────────────────
 
-/** Add a new education entry */
+// Education 
+
+
+// Add a new education entry 
 app.post('/api/education', (req, res) => {
     const { school, degree_type, field, year } = req.body;
     db.run(
@@ -295,7 +282,7 @@ app.post('/api/education', (req, res) => {
     );
 });
 
-/** Retrieve all saved education entries */
+//Retrieve all saved education entries 
 app.get('/api/education', (req, res) => {
     db.all(`SELECT * FROM education`, (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
@@ -303,10 +290,9 @@ app.get('/api/education', (req, res) => {
     });
 });
 
-/**
- * Delete a specific education entry by ID.
- * (This route was missing from the original server.js – added here.)
- */
+
+  //Delete a specific education entry by ID.
+ 
 app.delete('/api/education/:id', (req, res) => {
     db.run(`DELETE FROM education WHERE id = ?`, [req.params.id], (err) => {
         if (err) return res.status(500).json({ error: err.message });
@@ -314,11 +300,11 @@ app.delete('/api/education/:id', (req, res) => {
     });
 });
 
-// ─────────────────────────────────────────────────────────────
-// EXTRAS ROUTES  (skills & certifications)
-// ─────────────────────────────────────────────────────────────
 
-/** Save or replace the single extras record */
+// This is the extra stuff such as skills & certifications that you can add to your resume 
+
+
+// Save or replace the single extras record 
 app.post('/api/extras', (req, res) => {
     const { skills, certs } = req.body;
     db.run(
@@ -339,9 +325,8 @@ app.get('/api/extras', (req, res) => {
     });
 });
 
-// ─────────────────────────────────────────────────────────────
-// START SERVER
-// ─────────────────────────────────────────────────────────────
+
+// Start the server
 app.listen(PORT, () => {
     console.log(` Resume.Pro running at http://localhost:${PORT}/resume`);
 })
